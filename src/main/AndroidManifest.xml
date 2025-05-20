@@ -17,7 +17,9 @@
         android:theme="@style/Theme.XieXieVpn">
 
         <!-- 你的登录界面 Activity -->
-        <activity android:name=".LoginActivity">
+        <activity
+            android:name=".LoginActivity"
+            android:exported="true">
             <intent-filter>
                 <!-- 声明这是APP的默认启动入口，如果你想让它作为第一个页面 -->
                 <action android:name="android.intent.action.MAIN"/>

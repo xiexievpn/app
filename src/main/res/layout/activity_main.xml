@@ -1,0 +1,32 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" 
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp">
+
+    <Button
+        android:id="@+id/btnOpenProxy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="打开加速" />
+
+    <Button
+        android:id="@+id/btnCloseProxy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="关闭加速"
+        android:enabled="false"/>
+
+    <TextView
+        android:id="@+id/tvSwitchRegion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="切换区域"
+        android:textColor="#0000FF"
+        android:autoLink="web" 
+        android:clickable="true"
+        android:focusable="true"
+        android:paddingTop="16dp"/>
+</LinearLayout>

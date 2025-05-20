@@ -114,10 +114,7 @@ class XieXieVpnService : VpnService() {
         Log.d(TAG, "xray process destroyed")
     }
 
-    /**
-     * 将内置资源复制到 filesDir，确保可执行文件存在并具有权限
-     */
-    private fun prepareAssets() {
+ private fun prepareAssets() {
         val assetNames = listOf("xray", "geoip.dat", "geosite.dat")
         for (name in assetNames) {
             try {
@@ -137,7 +134,7 @@ class XieXieVpnService : VpnService() {
             }
         }
     }
-
+    
     // ============= 以下是一些辅助方法 ==============
 
     /**

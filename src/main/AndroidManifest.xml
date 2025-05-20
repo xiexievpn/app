@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest 
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.xiexievpn">
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- 这里声明需要的权限，例如网络访问、写入外部存储（若需要）、网络状态等 -->
     <uses-permission android:name="android.permission.INTERNET"/>

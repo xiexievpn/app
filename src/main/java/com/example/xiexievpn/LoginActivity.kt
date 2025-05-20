@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.IOException
 
@@ -44,10 +46,8 @@ class LoginActivity : AppCompatActivity() {
         // 用OkHttp发起POST请求
         val client = OkHttpClient()
         val jsonBody = JSONObject().put("code", uuid)
-        val requestBody = RequestBody.create(
-            MediaType.parse("application/json; charset=utf-8"), 
-            jsonBody.toString()
-        )
+        val requestBody = jsonBody.toString()
+            .toRequestBody("application/json; charset=utf-8".toMediaType())
         val request = Request.Builder()
             .url("https://vvv.xiexievpn.com/login")
             .post(requestBody)
@@ -93,7 +93,7 @@ class LoginActivity : AppCompatActivity() {
                                 .remove("uuid")
                                 .apply()
 
-                            when (response.code()) {
+                            when (response.code) {
                                 401 -> Toast.makeText(this@LoginActivity, "无效的随机码", Toast.LENGTH_SHORT).show()
                                 403 -> Toast.makeText(this@LoginActivity, "访问已过期", Toast.LENGTH_SHORT).show()
                                 else -> Toast.makeText(this@LoginActivity, "服务器错误", Toast.LENGTH_SHORT).show()

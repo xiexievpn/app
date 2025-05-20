@@ -25,6 +25,8 @@ class XieXieVpnService : VpnService() {
         super.onCreate()
         Log.d(TAG, "onCreate")
 
+        prepareAssets()
+
         // 若要前台运行（避免被系统杀掉），可在此创建通知渠道并启动前台服务
         createNotificationChannel()
         val notification = buildForegroundNotification()
@@ -110,6 +112,30 @@ class XieXieVpnService : VpnService() {
         xrayProcess?.destroy()
         xrayProcess = null
         Log.d(TAG, "xray process destroyed")
+    }
+
+    /**
+     * 将内置的 xray 和数据文件复制到 filesDir
+     */
+    private fun prepareAssets() {
+        val assetNames = listOf("xray", "geoip.dat", "geosite.dat")
+        for (name in assetNames) {
+            try {
+                val outFile = File(filesDir, name)
+                if (!outFile.exists()) {
+                    assets.open(name).use { input ->
+                        outFile.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    if (name == "xray") {
+                        outFile.setExecutable(true)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to prepare asset $name: ${e.message}")
+            }
+        }
     }
 
     // ============= 以下是一些辅助方法 ==============

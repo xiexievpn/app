@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest 
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.xiexievpn">
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- 这里声明需要的权限，例如网络访问、写入外部存储（若需要）、网络状态等 -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- 如果你需要监听网络变化或检查网络状态，可以加 -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <!-- 前台服务权限，启动 VPNService 时需要 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <application
         android:allowBackup="true"
@@ -17,7 +18,9 @@
         android:theme="@style/Theme.XieXieVpn">
 
         <!-- 你的登录界面 Activity -->
-        <activity android:name=".LoginActivity">
+        <activity
+            android:name=".LoginActivity"
+            android:exported="true">
             <intent-filter>
                 <!-- 声明这是APP的默认启动入口，如果你想让它作为第一个页面 -->
                 <action android:name="android.intent.action.MAIN"/>

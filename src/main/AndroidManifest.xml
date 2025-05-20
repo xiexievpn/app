@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- 如果你需要监听网络变化或检查网络状态，可以加 -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <!-- 前台服务权限，启动 VPNService 时需要 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <application
         android:allowBackup="true"

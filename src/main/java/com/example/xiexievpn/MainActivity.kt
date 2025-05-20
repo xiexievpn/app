@@ -10,6 +10,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -102,10 +104,8 @@ class MainActivity : AppCompatActivity() {
     private fun fetchConfigData(uuid: String) {
         val client = OkHttpClient()
         val jsonBody = JSONObject().put("code", uuid)
-        val requestBody = RequestBody.create(
-            MediaType.parse("application/json; charset=utf-8"),
-            jsonBody.toString()
-        )
+        val requestBody = jsonBody.toString()
+            .toRequestBody("application/json; charset=utf-8".toMediaType())
         val request = Request.Builder()
             .url("https://vvv.xiexievpn.com/getuserinfo")
             .post(requestBody)
@@ -121,7 +121,7 @@ class MainActivity : AppCompatActivity() {
             override fun onResponse(call: Call, response: Response) {
                 response.use {
                     if (it.isSuccessful) {
-                        val responseData = it.body()?.string() ?: ""
+                        val responseData = it.body?.string() ?: ""
                         try {
                             val json = JSONObject(responseData)
                             val v2rayurl = json.optString("v2rayurl", "")
@@ -145,7 +145,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     } else {
                         runOnUiThread {
-                            Toast.makeText(this@MainActivity, "服务器错误: ${response.code()}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@MainActivity, "服务器错误: ${response.code}", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -159,10 +159,8 @@ class MainActivity : AppCompatActivity() {
     private fun doAddUser(uuid: String) {
         val client = OkHttpClient()
         val jsonBody = JSONObject().put("code", uuid)
-        val requestBody = RequestBody.create(
-            MediaType.parse("application/json; charset=utf-8"),
-            jsonBody.toString()
-        )
+        val requestBody = jsonBody.toString()
+            .toRequestBody("application/json; charset=utf-8".toMediaType())
         val request = Request.Builder()
             .url("https://vvv.xiexievpn.com/adduser")
             .post(requestBody)

@@ -80,7 +80,7 @@ class XieXieVpnService : VpnService() {
             // 启动子进程
             xrayProcess = processBuilder.start()
 
-            Log.d(TAG, "xray started, PID=${xrayProcess?.pid()}")
+            Log.d(TAG, "xray started")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start xray: ${e.message}")
             e.printStackTrace()

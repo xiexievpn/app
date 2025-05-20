@@ -1,4 +1,4 @@
-package your.package.name
+package com.example.xiexievpn
 
 import android.content.Intent
 import android.os.Bundle

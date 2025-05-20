@@ -82,7 +82,7 @@ class XieXieVpnService : VpnService() {
             // 启动子进程
             xrayProcess = processBuilder.start()
 
-            Log.d(TAG, "xray started, PID=${xrayProcess?.pid()}")
+            Log.d(TAG, "xray started")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start xray: ${e.message}")
             e.printStackTrace()
@@ -114,10 +114,7 @@ class XieXieVpnService : VpnService() {
         Log.d(TAG, "xray process destroyed")
     }
 
-    /**
-     * 将内置的 xray 和数据文件复制到 filesDir
-     */
-    private fun prepareAssets() {
+ private fun prepareAssets() {
         val assetNames = listOf("xray", "geoip.dat", "geosite.dat")
         for (name in assetNames) {
             try {
@@ -137,7 +134,7 @@ class XieXieVpnService : VpnService() {
             }
         }
     }
-
+    
     // ============= 以下是一些辅助方法 ==============
 
     /**

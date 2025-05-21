@@ -79,7 +79,7 @@ class XieXieVpnService : VpnService() {
     private fun startXray() {
         // === 注意：xray 不在 filesDir 里，而在 nativeLibraryDir 中 ===
         val xrayBinaryPath = "${applicationInfo.nativeLibraryDir}/xray"
-
+      
         // 如果外部已经生成了 config.json，直接使用；否则生成默认配置
         val configFile = File(filesDir, "config.json")
         if (!configFile.exists()) {

@@ -206,14 +206,14 @@ class MainActivity : AppCompatActivity() {
             val afterAt = afterScheme.substringAfter("@")
             val domainPart = afterAt.substringBefore(":")
             val portPart = afterAt.substringAfter(":").substringBefore("?")
-            // 可能还要提取 sni=xxx
+            // 提取 sni=xxx
             val queryPart = afterAt.substringAfter("?", "")
-            // 这里仅演示怎么拿 sni
             val sni = queryPart.substringAfter("sni=", "").substringBefore("&")
 
-            // 以下仅示例：有的后端会把 domainPart 做CDN域名, 你可能需要组合成 "mydomain.rocketchats.xyz"
-            // 具体以你在 Windows 版 parse_and_write_config 中的逻辑为准
+            // 这里仅示例：有时后端返回的 domainPart 就是最终域名，也可能要自己拼接
+            // 视后端返回而定，这里假设 realDomain = domainPart + ".rocketchats.xyz"
             val realDomain = "$domainPart.rocketchats.xyz"
+
             // 生成 JSON
             val configJson = createConfigJson(uuid, realDomain, sni)
 
@@ -233,23 +233,43 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 生成与 Windows 版对应的 config.json (适用于 Reality + VLESS)
-     * 可以根据你需要的配置来定制
+     * 生成与 Windows 版对应，但在Android上使用TUN inbound的 config.json
+     * (适用于 Reality + VLESS + TUN inbound)
      */
     private fun createConfigJson(uuid: String, domain: String, sni: String): String {
-        // 下面演示一个 Reality + VLESS 的配置
-        // 你可以根据自己的后端服务(端口、服务器名、公钥等)进行修改
+        // 使用 Xray 的 TUN inbound，让 Xray 能接收 VPNService TUN 流量
         val configData = JSONObject().apply {
             put("log", JSONObject().apply {
                 put("loglevel", "error")
             })
-            // Android 通常使用 TUN 模式，不需要 socks/http inbound
-            // 让 xray 直接处理 TUN 的流量
-            // 如果你非要 inbound 监听，可以自己加 inbound
+
+            // ============= Inbounds (加入 "tun" inbound) =============
             put("inbounds", JSONArray().apply {
-                // 省略 inbound
+                // TUN inbound
+                val tunInbound = JSONObject().apply {
+                    put("tag", "tun-in")
+                    put("protocol", "tun")
+                    put("settings", JSONObject().apply {
+                        // autoRoute=true / autoDetectInterface=true 让 Xray 自动管理路由
+                        put("autoRoute", true)
+                        put("autoDetectInterface", true)
+                        // domainStrategy 可视需求而定
+                        put("domainStrategy", "IPOnDemand")
+                    })
+                    // 若需要 sniff SNI/HTTP Host，可开启
+                    put("sniffing", JSONObject().apply {
+                        put("enabled", true)
+                        // 注意这里要用一个 JSON 数组
+                        val destOverrideArray = JSONArray()
+                        destOverrideArray.put("http")
+                        destOverrideArray.put("tls")
+                        put("destOverride", destOverrideArray)
+                    })
+                }
+                put(tunInbound)
             })
 
+            // ============= Outbounds (Reality + VLESS) =============
             put("outbounds", JSONArray().apply {
                 // 第一个 outbounds - vless
                 put(JSONObject().apply {
@@ -275,8 +295,10 @@ class MainActivity : AppCompatActivity() {
                         put("realitySettings", JSONObject().apply {
                             put("show", false)
                             put("fingerprint", "chrome")
-                            put("serverName", domain) // 服务器名
-                            put("publicKey", "mUzqKeHBc-s1m03iD8Dh1JoL2B9JwG5mMbimEoJ523o") // 后端给你的公钥
+                            // 服务器名可用 domain 或 sni
+                            put("serverName", domain) 
+                            // 后端给你的公钥
+                            put("publicKey", "mUzqKeHBc-s1m03iD8Dh1JoL2B9JwG5mMbimEoJ523o")
                             put("shortId", "")
                             put("spiderX", "")
                         })
@@ -297,12 +319,11 @@ class MainActivity : AppCompatActivity() {
                 })
             })
 
-            // routing 规则
+            // ============= Routing 规则 =============
             put("routing", JSONObject().apply {
                 put("domainStrategy", "IPIfNonMatch")
                 put("rules", JSONArray().apply {
-                    // 可根据需要添加分流规则
-                    // 这里做一个最简略示例
+                    // 屏蔽广告
                     put(JSONObject().apply {
                         put("type", "field")
                         put("domain", JSONArray().apply {
@@ -310,6 +331,7 @@ class MainActivity : AppCompatActivity() {
                         })
                         put("outboundTag", "block")
                     })
+                    // BT流量直连
                     put(JSONObject().apply {
                         put("type", "field")
                         put("protocol", JSONArray().apply {
@@ -317,7 +339,7 @@ class MainActivity : AppCompatActivity() {
                         })
                         put("outboundTag", "direct")
                     })
-                    // 国外站点
+                    // 国外站点 -> proxy
                     put(JSONObject().apply {
                         put("type", "field")
                         put("domain", JSONArray().apply {
@@ -325,7 +347,7 @@ class MainActivity : AppCompatActivity() {
                         })
                         put("outboundTag", "proxy")
                     })
-                    // 国内IP
+                    // 国内IP -> proxy（如你想国内IP直连，可以改成"direct"）
                     put(JSONObject().apply {
                         put("type", "field")
                         put("ip", JSONArray().apply {
@@ -338,7 +360,8 @@ class MainActivity : AppCompatActivity() {
             })
         }
 
-        return configData.toString(4) // 4个空格缩进
+        // 格式化缩进
+        return configData.toString(4)
     }
 
     /**

@@ -20,7 +20,7 @@ class XieXieVpnService : VpnService() {
         private const val NOTIFICATION_ID = 12345
 
         // 如果你要使用 socks inbound 监听这个端口，就在 config.json 里也写 10808
-        // 后面 builder.protect(LOCAL_SOCKS_PORT) 会保护这个端口
+        // 记得在运行时调用 VpnService.protect 来排除该端口
         private const val LOCAL_SOCKS_PORT = 10808
     }
 
@@ -60,20 +60,41 @@ class XieXieVpnService : VpnService() {
         // 全局路由
         builder.addRoute("0.0.0.0", 0)
 
-        // === 关键：保护 xray 的本地端口，防止死循环 ===
-        builder.protect(LOCAL_SOCKS_PORT)
-
-        // 建立 TUN
-        tunInterface = builder.establish()
-        Log.d(TAG, "VPN interface established")
+        try {
+            // 建立 TUN
+            tunInterface = builder.establish()
+            if (tunInterface == null) {
+                Log.e(TAG, "Failed to establish VPN interface")
+                stopSelf()
+            } else {
+                Log.d(TAG, "VPN interface established")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error establishing VPN interface: ${e.message}")
+            e.printStackTrace()
+            stopSelf()
+        }
     }
 
     private fun startXray() {
         // === 注意：xray 不在 filesDir 里，而在 nativeLibraryDir 中 ===
         val xrayBinaryPath = "${applicationInfo.nativeLibraryDir}/xray"
 
-        // 生成 config.json（或者你也可以在 MainActivity 已经写好，这里直接用）
-        val configFile = generateConfigFile()
+        // 如果外部已经生成了 config.json，直接使用；否则生成默认配置
+        val configFile = File(filesDir, "config.json")
+        if (!configFile.exists()) {
+            generateConfigFile()
+        }
+
+        val xrayFile = File(xrayBinaryPath)
+        if (!xrayFile.exists()) {
+            Log.e(TAG, "xray binary not found at $xrayBinaryPath")
+            stopSelf()
+            return
+        }
+        if (!xrayFile.canExecute()) {
+            xrayFile.setExecutable(true)
+        }
 
         try {
             val processBuilder = ProcessBuilder(
@@ -102,6 +123,7 @@ class XieXieVpnService : VpnService() {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start xray: ${e.message}")
             e.printStackTrace()
+            stopSelf()
         }
     }
 

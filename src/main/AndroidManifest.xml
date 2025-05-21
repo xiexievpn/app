@@ -35,7 +35,8 @@
         <service
             android:name=".XieXieVpnService"
             android:permission="android.permission.BIND_VPN_SERVICE"
-            android:exported="true">
+            android:exported="true"
+            android:foregroundServiceType="vpn">
             <intent-filter>
                 <!-- 指明这是一个 VPN Service -->
                 <action android:name="android.net.VpnService" />

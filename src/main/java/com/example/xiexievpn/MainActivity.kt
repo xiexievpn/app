@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.*
 import android.net.Uri
 import android.net.VpnService
+import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
@@ -360,7 +361,11 @@ class MainActivity : AppCompatActivity() {
     private fun startAcceleration() {
         // 启动 XieXieVpnService
         val intent = Intent(this, XieXieVpnService::class.java)
-        startService(intent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
 
         btnOpenProxy.isEnabled = false
         btnCloseProxy.isEnabled = true

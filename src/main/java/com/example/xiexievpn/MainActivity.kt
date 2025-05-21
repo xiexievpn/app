@@ -199,8 +199,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         try {
-            // 简单地拆分出 uuid / domain / 端口 / sni 等信息
-            // 示例：vless://<UUID>@mydomain.com:443?encryption=none&sni=xxx...
             val afterScheme = urlString.substring("vless://".length)  // 去掉 vless://
             val uuid = afterScheme.substringBefore("@")
             val afterAt = afterScheme.substringAfter("@")
@@ -209,9 +207,7 @@ class MainActivity : AppCompatActivity() {
             // 提取 sni=xxx
             val queryPart = afterAt.substringAfter("?", "")
             val sni = queryPart.substringAfter("sni=", "").substringBefore("&")
-
-            // 这里仅示例：有时后端返回的 domainPart 就是最终域名，也可能要自己拼接
-            // 视后端返回而定，这里假设 realDomain = domainPart + ".rocketchats.xyz"
+            
             val realDomain = "$domainPart.rocketchats.xyz"
 
             // 生成 JSON
@@ -232,10 +228,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * 生成与 Windows 版对应，但在Android上使用TUN inbound的 config.json
-     * (适用于 Reality + VLESS + TUN inbound)
-     */
     private fun createConfigJson(uuid: String, domain: String, sni: String): String {
         // 使用 Xray 的 TUN inbound，让 Xray 能接收 VPNService TUN 流量
         val configData = JSONObject().apply {
@@ -250,7 +242,6 @@ class MainActivity : AppCompatActivity() {
                     put("tag", "tun-in")
                     put("protocol", "tun")
                     put("settings", JSONObject().apply {
-                        // autoRoute=true / autoDetectInterface=true 让 Xray 自动管理路由
                         put("autoRoute", true)
                         put("autoDetectInterface", true)
                         // domainStrategy 可视需求而定
@@ -259,7 +250,6 @@ class MainActivity : AppCompatActivity() {
                     // 若需要 sniff SNI/HTTP Host，可开启
                     put("sniffing", JSONObject().apply {
                         put("enabled", true)
-                        // 注意这里要用一个 JSON 数组
                         val destOverrideArray = JSONArray()
                         destOverrideArray.put("http")
                         destOverrideArray.put("tls")
@@ -269,7 +259,7 @@ class MainActivity : AppCompatActivity() {
                 put(tunInbound)
             })
 
-            // ============= Outbounds (Reality + VLESS) =============
+
             put("outbounds", JSONArray().apply {
                 // 第一个 outbounds - vless
                 put(JSONObject().apply {
@@ -277,11 +267,11 @@ class MainActivity : AppCompatActivity() {
                     put("settings", JSONObject().apply {
                         put("vnext", JSONArray().apply {
                             put(JSONObject().apply {
-                                put("address", domain) // 服务器域名
-                                put("port", 443)       // 443 或你的服务端口
+                                put("address", domain) 
+                                put("port", 443)    
                                 put("users", JSONArray().apply {
                                     put(JSONObject().apply {
-                                        put("id", uuid)          // 用户 UUID
+                                        put("id", uuid)
                                         put("encryption", "none")
                                         put("flow", "xtls-rprx-vision")
                                     })

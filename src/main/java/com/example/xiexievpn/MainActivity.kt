@@ -4,11 +4,13 @@ import android.app.Activity
 import android.content.*
 import android.net.Uri
 import android.net.VpnService
+import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -360,7 +362,11 @@ class MainActivity : AppCompatActivity() {
     private fun startAcceleration() {
         // 启动 XieXieVpnService
         val intent = Intent(this, XieXieVpnService::class.java)
-        startService(intent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ContextCompat.startForegroundService(this, intent)
+        } else {
+            startService(intent)
+        }
 
         btnOpenProxy.isEnabled = false
         btnCloseProxy.isEnabled = true

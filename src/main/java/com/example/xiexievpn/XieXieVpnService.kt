@@ -60,19 +60,40 @@ class XieXieVpnService : VpnService() {
         // 全局路由
         builder.addRoute("0.0.0.0", 0)
 
-        // 建立 TUN
-        tunInterface = builder.establish()
-        Log.d(TAG, "VPN interface established")
+        try {
+            // 建立 TUN
+            tunInterface = builder.establish()
+            if (tunInterface == null) {
+                Log.e(TAG, "Failed to establish VPN interface")
+                stopSelf()
+            } else {
+                Log.d(TAG, "VPN interface established")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error establishing VPN interface: ${e.message}")
+            e.printStackTrace()
+            stopSelf()
+        }
     }
 
     private fun startXray() {
         // === 注意：xray 不在 filesDir 里，而在 nativeLibraryDir 中 ===
         val xrayBinaryPath = "${applicationInfo.nativeLibraryDir}/xray"
-
+      
         // 如果外部已经生成了 config.json，直接使用；否则生成默认配置
         val configFile = File(filesDir, "config.json")
         if (!configFile.exists()) {
             generateConfigFile()
+        }
+
+        val xrayFile = File(xrayBinaryPath)
+        if (!xrayFile.exists()) {
+            Log.e(TAG, "xray binary not found at $xrayBinaryPath")
+            stopSelf()
+            return
+        }
+        if (!xrayFile.canExecute()) {
+            xrayFile.setExecutable(true)
         }
 
         try {
@@ -102,6 +123,7 @@ class XieXieVpnService : VpnService() {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start xray: ${e.message}")
             e.printStackTrace()
+            stopSelf()
         }
     }
 
